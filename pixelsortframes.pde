@@ -1,4 +1,4 @@
-/* ASDFPixelSort for video frames v1.0
+/* ASDFPixelSort for video frames v1.1
 Original ASDFPixelSort by Kim Asendorf <http://kimasendorf.com>
 https://github.com/kimasendorf/ASDFPixelSort
 Fork by dx <http://dequis.org> and chinatsu <http://360nosco.pe>
@@ -19,14 +19,13 @@ Example command with reasonable quality:
 */
 
 // Main configuration
-String basedir = "D:/pixelsortframes"; // Specify the directory in which the frames are located. Use forward slashes.
+String basedir = "D:/things/pixelsortframes"; // Specify the directory in which the frames are located. Use forward slashes.
 String fileext = ".png"; // Change to the format your images are in.
 int resumeprocess = 0; // If you wish to resume a previously stopped process, change this value.
 
-
-int mode = 2; // MODE: 0 = black, 1 = bright, 2 = white
+int mode = 1; // MODE: 0 = black, 1 = bright, 2 = white
 int blackValue = -10000000;
-int brightnessValue = 60;
+int brightnessValue = -1;
 int whiteValue = -6000000;
 // -------
 
@@ -34,7 +33,7 @@ PImage img;
 String[] filenames;
 int row = 0;
 int column = 0;
-int current_img = 0;
+int i = 0;
 java.io.File folder = new java.io.File(dataPath(basedir));
 java.io.FilenameFilter extfilter = new java.io.FilenameFilter() {
   boolean accept(File dir, String name) {
@@ -43,17 +42,16 @@ java.io.FilenameFilter extfilter = new java.io.FilenameFilter() {
 };
 
 void setup() {
-  frameCount = 0;
-  if (resumeprocess > 0) {frameCount = resumeprocess - 1;}
-  size(1280, 720); // Resolution of the frames. It's likely there's a better way of doing this.. 
+  if (resumeprocess > 0) {i = resumeprocess - 1;}
+  size(1920, 1080); // Resolution of the frames. It's likely there's a better way of doing this.. 
   filenames = folder.list(extfilter);
 }
 
 void draw() {
-  if (frameCount +1 > filenames.length) {println("Uh.. Done!"); System.exit(0);}
+  if (i +1 > filenames.length) {println("Uh.. Done!"); System.exit(0);}
   row = 0;
   column = 0;
-  img = loadImage(basedir+"/"+filenames[frameCount]);
+  img = loadImage(basedir+"/"+filenames[i]);
   image(img,0,0);
   while(column < width-1) {
     img.loadPixels(); 
@@ -69,8 +67,9 @@ void draw() {
     img.updatePixels();
   }
   image(img,0,0);
-  saveFrame(basedir+"/out/"+filenames[frameCount]);
-  println("Frames processed: "+frameCount+"/"+filenames.length);
+  saveFrame(basedir+"/out/"+filenames[i]);
+  println("Frames processed: "+i+"/"+filenames.length);
+  i++;
 }
 
 
