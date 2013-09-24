@@ -21,7 +21,7 @@ Example command with reasonable quality:
 // Main configuration
 String basedir = "D:/pixelsortframes"; // Specify the directory in which the frames are located. Use forward slashes.
 String fileext = ".png"; // Change to the format your images are in.
-int resumeprocess = 20; // If you wish to resume a previously stopped process, change this value.
+int resumeprocess = 0; // If you wish to resume a previously stopped process, change this value.
 
 
 int mode = 2; // MODE: 0 = black, 1 = bright, 2 = white
