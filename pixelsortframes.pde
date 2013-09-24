@@ -1,4 +1,4 @@
-/* ASDFPixelSort for video frames v1.1
+/* ASDFPixelSort for video frames v1.0
 Original ASDFPixelSort by Kim Asendorf <http://kimasendorf.com>
 https://github.com/kimasendorf/ASDFPixelSort
 Fork by dx <http://dequis.org> and chinatsu <http://360nosco.pe>
@@ -10,9 +10,6 @@ Fork by dx <http://dequis.org> and chinatsu <http://360nosco.pe>
 3. Tweak things, that's what's most fun, isn't it?
 
 -- Notes:
-When specifying a value in `int resumeprocess`, you might want to run over a few previously processed frames to make sure nothing's skipped.
-It's a little broken in that sense, sorry.
-
 When joining the images back into video, you'll probably want to know what the framerate of the original video is. 
 Example command with reasonable quality:
   $ ffmpeg -f image2 -r ntsc -i "frame_%06d.png" -c:v libx264 -preset slow "frames.mkv"
@@ -42,7 +39,7 @@ java.io.FilenameFilter extfilter = new java.io.FilenameFilter() {
 };
 
 void setup() {
-  if (resumeprocess > 0) {i = resumeprocess - 1;}
+  if (resumeprocess > 0) {i = resumeprocess - 1;frameCount = i;}
   size(1920, 1080); // Resolution of the frames. It's likely there's a better way of doing this.. 
   filenames = folder.list(extfilter);
 }
