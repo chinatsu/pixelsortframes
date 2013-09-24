@@ -1,34 +1,60 @@
-int mode = 1;
+/* ASDFPixelSort for video frames v1.0
+Original ASDFPixelSort by Kim Asendorf <http://kimasendorf.com>
+https://github.com/kimasendorf/ASDFPixelSort
+Fork by dx <http://dequis.org> and chinatsu <http://360nosco.pe>
 
-//MODE:
-//0 -> black
-//1 -> bright
-//2 -> white
-//b(16777216)
+-- Usage:
+1. Split a video into a series of pictures with ffmpeg:
+  $ ffmpeg -i "input.mov" -an -f image2 "frame_%06d.png"
+2. Change `String basedir` in this script to point to where the images are located.
+3. Tweak things, that's what's most fun, isn't it?
+
+-- Notes:
+When specifying a value in `int resumeprocess`, you might want to run over a few previously processed frames to make sure nothing's skipped.
+It's a little broken in that sense, sorry.
+
+When joining the images back into video, you'll probably want to know what the framerate of the original video is. 
+Example command with reasonable quality:
+  $ ffmpeg -f image2 -r ntsc -i "frame_%06d.png" -c:v libx264 -preset slow "frames.mkv"
+*/
+
+// Main configuration
+String basedir = "D:/pixelsortframes"; // Specify the directory in which the frames are located. Use forward slashes.
+String fileext = ".png"; // Change to the format your images are in.
+int resumeprocess = 20; // If you wish to resume a previously stopped process, change this value.
+
+
+int mode = 2; // MODE: 0 = black, 1 = bright, 2 = white
+int blackValue = -10000000;
+int brightnessValue = 60;
+int whiteValue = -6000000;
+// -------
 
 PImage img;
-String imgFileName = "PIA15635";
-String fileType = "png";
-
-int loops = 1;
-
-int blackValue = -16000000;
-int brigthnessValue = 60;
-int whiteValue = -13000000;
-
+String[] filenames;
 int row = 0;
 int column = 0;
-
-boolean saved = false;
+int current_img = 0;
+java.io.File folder = new java.io.File(dataPath(basedir));
+java.io.FilenameFilter extfilter = new java.io.FilenameFilter() {
+  boolean accept(File dir, String name) {
+    return name.toLowerCase().endsWith(fileext);
+  }
+};
 
 void setup() {
-  img = loadImage(imgFileName+"."+fileType);
-  size(img.width, img.height);
-  image(img, 0, 0);
+  frameCount = 0;
+  if (resumeprocess > 0) {frameCount = resumeprocess - 1;}
+  size(1280, 720); // Resolution of the frames. It's likely there's a better way of doing this.. 
+  filenames = folder.list(extfilter);
 }
 
-
 void draw() {
+  if (frameCount +1 > filenames.length) {println("Uh.. Done!"); System.exit(0);}
+  row = 0;
+  column = 0;
+  img = loadImage(basedir+"/"+filenames[frameCount]);
+  image(img,0,0);
   while(column < width-1) {
     img.loadPixels(); 
     sortColumn();
@@ -42,14 +68,9 @@ void draw() {
     row++;
     img.updatePixels();
   }
-  
   image(img,0,0);
-  if(!saved && frameCount >= loops) {
-    saveFrame(imgFileName+"_"+mode+".png");
-    saved = true;
-    println("DONE"+frameCount);
-    System.exit(0);
-  }
+  saveFrame(basedir+"/out/"+filenames[frameCount]);
+  println("Frames processed: "+frameCount+"/"+filenames.length);
 }
 
 
@@ -171,7 +192,7 @@ int getFirstBrightX(int _x, int _y) {
   int x = _x;
   int y = _y;
   color c;
-  while(brightness(c = img.pixels[x + y * img.width]) < brigthnessValue) {
+  while(brightness(c = img.pixels[x + y * img.width]) < brightnessValue) {
     x++;
     if(x >= width) return -1;
   }
@@ -182,7 +203,7 @@ int getNextDarkX(int _x, int _y) {
   int x = _x+1;
   int y = _y;
   color c;
-  while(brightness(c = img.pixels[x + y * img.width]) > brigthnessValue) {
+  while(brightness(c = img.pixels[x + y * img.width]) > brightnessValue) {
     x++;
     if(x >= width) return width-1;
   }
@@ -246,7 +267,7 @@ int getFirstBrightY(int _x, int _y) {
   int y = _y;
   color c;
   if(y < height) {
-    while(brightness(c = img.pixels[x + y * img.width]) < brigthnessValue) {
+    while(brightness(c = img.pixels[x + y * img.width]) < brightnessValue) {
       y++;
       if(y >= height) return -1;
     }
@@ -259,7 +280,7 @@ int getNextDarkY(int _x, int _y) {
   int y = _y+1;
   color c;
   if(y < height) {
-    while(brightness(c = img.pixels[x + y * img.width]) > brigthnessValue) {
+    while(brightness(c = img.pixels[x + y * img.width]) > brightnessValue) {
       y++;
       if(y >= height) return height-1;
     }
