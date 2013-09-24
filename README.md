@@ -1,12 +1,11 @@
-ASDFPixelSort
+pixelsortframes
 =============
 
-Processing script to sort portions of pixels in an image.
-
-DEMO:
-http://kimasendorf.com/mountain-tour/
-http://kimasendorf.com/sorted-aerial/
+Processing script based on Kim Asendorf's ASDFPixelSort, which sorts portions of pixels in an image.
+pixelsortframes processes multiple images, best used on animations or videos split into single frames.
 
 
-Kim Asendorf 2010
-http://kimasendorf.com
+Authors:
+* Kim Asendorf - <http://kimasendorf.com>
+* dx - <http://dequis.org>
+* chinatsu - <http://360nosco.pe>
