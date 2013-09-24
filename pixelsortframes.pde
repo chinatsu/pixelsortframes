@@ -68,7 +68,7 @@ void draw() {
   }
   image(img,0,0);
   saveFrame(basedir+"/out/"+filenames[i]);
-  println("Frames processed: "+i+"/"+filenames.length);
+  println("Frames processed: "+frameCount+"/"+filenames.length);
   i++;
 }
 
