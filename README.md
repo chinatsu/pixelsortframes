@@ -8,4 +8,4 @@ pixelsortframes processes multiple images, best used on animations or videos spl
 Authors:
 * Kim Asendorf - <http://kimasendorf.com>
 * dx - <http://dequis.org>
-* chinatsu - <http://360nosco.pe>
+* chinatsu - <http://hugs.pw>
