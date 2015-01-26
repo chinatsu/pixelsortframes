@@ -27,6 +27,7 @@ int whiteValue = -6000000;
 // -------
 
 PImage img;
+PImage initimg;
 String[] filenames;
 int row = 0;
 int column = 0;
@@ -39,9 +40,11 @@ java.io.FilenameFilter extfilter = new java.io.FilenameFilter() {
 };
 
 void setup() {
-  if (resumeprocess > 0) {i = resumeprocess - 1;frameCount = i;}
-  size(1920, 1080); // Resolution of the frames. It's likely there's a better way of doing this.. 
+  frameCount = 0;
+  if (resumeprocess > 0) {frameCount = resumeprocess - 1;}
   filenames = folder.list(extfilter);
+  initimg = loadImage(basedir+"/"+filenames[0]);
+  size(initimg.width, initimg.height); // Takes the size of the first image in the folder.
 }
 
 void draw() {
