@@ -44,7 +44,7 @@ void setup() {
   if (resumeprocess > 0) {frameCount = resumeprocess - 1;}
   filenames = folder.list(extfilter);
   initimg = loadImage(basedir+"/"+filenames[0]);
-  size(initimg.width, initimg.height); // Takes the size of the first image in the folder.
+  surface.setSize(initimg.width, initimg.height); // Takes the size of the first image in the folder.
 }
 
 void draw() {
