@@ -1,90 +1,48 @@
-/* ASDFPixelSort for video frames v1.1
-Original ASDFPixelSort by Kim Asendorf <http://kimasendorf.com>
-https://github.com/kimasendorf/ASDFPixelSort
-Fork by dx <http://dequis.org> and chinatsu <http://cute.enterprises>
-
--- Usage:
-1. Split a video into a series of pictures with ffmpeg:
-  $ ffmpeg -i "input.mov" -an -f image2 "frame_%06d.png"
-2. Change `String basedir` in this script to point to where the images are located.
-3. Tweak things, that's what's most fun, isn't it?
-
--- Notes:
-When joining the images back into video, you'll probably want to know what the framerate of the original video is.
-Example command with reasonable quality:
-  $ ffmpeg -f image2 -r ntsc -i "frame_%06d.png" -c:v libx264 -preset slow "frames.mkv"
-*/
-
 // Main configuration
-String basedir = "G:/pixelsortframes/frames"; // Specify the directory in which the frames are located. Use forward slashes for directory separator (even on Windows).
-String fileext = ".png"; // Change to the format your images are in.
-int resumeprocess = 0; // If you wish to resume a previously stopped process, change this value.
-
-int mode = 0; // MODE: 0 = black, 1 = bright, 2 = white
-int modifier = -100000; // modifier: previously brightnessValue, blackValue, whiteValue
+int mode = 1; // MODE: 0 = black, 1 = bright, 2 = white
+int modifier = 100; // modifier: previously brightnessValue, blackValue, whiteValue
 // -------
 
-PImage img;
-PImage initimg;
-String[] filenames;
 int row = 0;
 int column = 0;
-int i = 0;
-java.io.File folder = new java.io.File(dataPath(basedir));
-java.io.FilenameFilter extfilter = new java.io.FilenameFilter() {
-  boolean accept(File dir, String name) {
-    return name.toLowerCase().endsWith(fileext);
-  }
-};
+import processing.video.*;
+Movie m;
 
 void setup() {
-  frameCount = 0;
-  if (resumeprocess > 0) {frameCount = resumeprocess - 1;}
-  filenames = folder.list(extfilter);
-  initimg = loadImage(basedir+"/"+filenames[0]);
-  surface.setSize(initimg.width, initimg.height); // Takes the size of the first image in the folder.
+  size(480, 270); // source video resolution
+  m = new Movie(this, "frames.mp4");
+  m.play();
 }
 
 void draw() {
-  if (i + 1 == filenames.length) {println("Done"); exit();}
   row = 0;
   column = 0;
+  m.play();
+  if (m.available()) {
+    m.pause();
+    image(m, 0, 0);
+    m.read();
 
-  img = loadImage(basedir+"/"+filenames[i]);
-  image(img,0,0);
-  while(column < width-1) {
-    img.loadPixels();
-    sortColumn();
-    column++;
-    img.updatePixels();
-  }
-
-  while(row < height-1) {
-    img.loadPixels();
-    sortRow();
-    row++;
-    img.updatePixels();
-  }
-  image(img,0,0);
-  saveFrame("out/"+filenames[i]);
-  println("Frames processed: "+frameCount+"/"+filenames.length);
-  changeModifier();
-  i++;
-}
-
-void changeModifier() {
-  // Example: modifier increases by 47 for each iteration in the loop, 
-  // if it is divisible by 73, change modifier to a random number.
-  modifier += 47;
-  if (modifier % 73 == 0) {
-    modifier = 100 + (int)(Math.random() * ((-10000000 - 100) + 1));
-    println("Modifier changed: "+modifier);
+    while(column < width-1) {
+     m.loadPixels();
+     sortColumn();
+     column++;
+     m.updatePixels();
+    }
+  
+    while(row < height-1) {
+     m.loadPixels();
+     sortRow();
+     row++;
+     m.updatePixels();
+    }
+    saveFrame("out/######.png");
   }
 }
 
 void sortRow() {
-  int x = 0;
-  int y = row;
+  int x = row;
+  int y = 0;
   int xend = 0;
 
   while(xend < width-1) {
@@ -113,13 +71,13 @@ void sortRow() {
     color[] sorted = new color[sortLength];
 
     for(int i=0; i<sortLength; i++) {
-      unsorted[i] = img.pixels[x + i + y * img.width];
+      unsorted[i] = m.pixels[x + i + y * m.width];
     }
 
     sorted = sort(unsorted);
 
     for(int i=0; i<sortLength; i++) {
-      img.pixels[x + i + y * img.width] = sorted[i];
+      m.pixels[x + i + y * m.width] = sorted[i];
     }
 
     x = xend+1;
@@ -158,13 +116,13 @@ void sortColumn() {
     color[] sorted = new color[sortLength];
 
     for(int i=0; i<sortLength; i++) {
-      unsorted[i] = img.pixels[x + (y+i) * img.width];
+      unsorted[i] = m.pixels[x + (y+i) * m.width];
     }
 
     sorted = sort(unsorted);
 
     for(int i=0; i<sortLength; i++) {
-      img.pixels[x + (y+i) * img.width] = sorted[i];
+      m.pixels[x + (y+i) * m.width] = sorted[i];
     }
 
     y = yend+1;
@@ -177,7 +135,7 @@ int getFirstNotBlackX(int _x, int _y) {
   int x = _x;
   int y = _y;
   color c;
-  while((c = img.pixels[x + y * img.width]) < modifier) {
+  while((c = m.pixels[x + y * m.width]) < modifier) {
     x++;
     if(x >= width) return -1;
   }
@@ -188,7 +146,7 @@ int getNextBlackX(int _x, int _y) {
   int x = _x+1;
   int y = _y;
   color c;
-  while((c = img.pixels[x + y * img.width]) > modifier) {
+  while((c = m.pixels[x + y * m.width]) > modifier) {
     x++;
     if(x >= width) return width-1;
   }
@@ -200,7 +158,7 @@ int getFirstBrightX(int _x, int _y) {
   int x = _x;
   int y = _y;
   color c;
-  while(brightness(c = img.pixels[x + y * img.width]) < modifier) {
+  while(brightness(c = m.pixels[x + y * m.width]) < modifier) {
     x++;
     if(x >= width) return -1;
   }
@@ -211,7 +169,7 @@ int getNextDarkX(int _x, int _y) {
   int x = _x+1;
   int y = _y;
   color c;
-  while(brightness(c = img.pixels[x + y * img.width]) > modifier) {
+  while(brightness(c = m.pixels[x + y * m.width]) > modifier) {
     x++;
     if(x >= width) return width-1;
   }
@@ -223,7 +181,7 @@ int getFirstNotWhiteX(int _x, int _y) {
   int x = _x;
   int y = _y;
   color c;
-  while((c = img.pixels[x + y * img.width]) > modifier) {
+  while((c = m.pixels[x + y * m.width]) > modifier) {
     x++;
     if(x >= width) return -1;
   }
@@ -234,7 +192,7 @@ int getNextWhiteX(int _x, int _y) {
   int x = _x+1;
   int y = _y;
   color c;
-  while((c = img.pixels[x + y * img.width]) < modifier) {
+  while((c = m.pixels[x + y * m.width]) < modifier) {
     x++;
     if(x >= width) return width-1;
   }
@@ -248,7 +206,7 @@ int getFirstNotBlackY(int _x, int _y) {
   int y = _y;
   color c;
   if(y < height) {
-    while((c = img.pixels[x + y * img.width]) < modifier) {
+    while((c = m.pixels[x + y * m.width]) < modifier) {
       y++;
       if(y >= height) return -1;
     }
@@ -261,7 +219,7 @@ int getNextBlackY(int _x, int _y) {
   int y = _y+1;
   color c;
   if(y < height) {
-    while((c = img.pixels[x + y * img.width]) > modifier) {
+    while((c = m.pixels[x + y * m.width]) > modifier) {
       y++;
       if(y >= height) return height-1;
     }
@@ -275,7 +233,7 @@ int getFirstBrightY(int _x, int _y) {
   int y = _y;
   color c;
   if(y < height) {
-    while(brightness(c = img.pixels[x + y * img.width]) < modifier) {
+    while(brightness(c = m.pixels[x + y * m.width]) < modifier) {
       y++;
       if(y >= height) return -1;
     }
@@ -288,7 +246,7 @@ int getNextDarkY(int _x, int _y) {
   int y = _y+1;
   color c;
   if(y < height) {
-    while(brightness(c = img.pixels[x + y * img.width]) > modifier) {
+    while(brightness(c = m.pixels[x + y * m.width]) > modifier) {
       y++;
       if(y >= height) return height-1;
     }
@@ -302,7 +260,7 @@ int getFirstNotWhiteY(int _x, int _y) {
   int y = _y;
   color c;
   if(y < height) {
-    while((c = img.pixels[x + y * img.width]) > modifier) {
+    while((c = m.pixels[x + y * m.width]) > modifier) {
       y++;
       if(y >= height) return -1;
     }
@@ -315,7 +273,7 @@ int getNextWhiteY(int _x, int _y) {
   int y = _y+1;
   color c;
   if(y < height) {
-    while((c = img.pixels[x + y * img.width]) < modifier) {
+    while((c = m.pixels[x + y * m.width]) < modifier) {
       y++;
       if(y >= height) return height-1;
     }
